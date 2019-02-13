@@ -1,27 +1,47 @@
 let isDrawing = false;
-let prevPoint = null;
 let context = null;
+let bgContext = null;
+let points = [];
 
 function mouseDown(inEvent) {
-  context.beginPath();
-  context.moveTo(inEvent.x, inEvent.y);
-  prevPoint = {x: inEvent.x, y: inEvent.y};
+  points.length = 0;
+  points.push({x: inEvent.clientX, y: inEvent.clientY});
   isDrawing = true;
 }
 
 function mouseMove(inEvent) {
   if(isDrawing) {
-    let endP = {x: (inEvent.x + prevPoint.x) * 0.5, y: (inEvent.y + prevPoint.y) * 0.5};
-    context.quadraticCurveTo(prevPoint.x, prevPoint.y, endP.x, endP.y);
-    context.stroke();
-    prevPoint = {x: inEvent.x, y: inEvent.y};
+    points.push({x: inEvent.clientX, y: inEvent.clientY});
+    draw(context, true);
   }
 }
 
 function mouseUp(inEvent) {
-  context.lineTo(inEvent.x, inEvent.y);
-  context.stroke();
+  points.push({x: inEvent.clientX, y: inEvent.clientY});
+  draw(bgContext, false);
   isDrawing = false;
+}
+
+function draw(inContext, inClear) {
+  if(inClear) {
+    inContext.clearRect(0, 0, inContext.canvas.width, inContext.canvas.height);
+  }
+  for(let i = 0; i < points.length; ++i) {
+    if(i == 0) {
+      inContext.beginPath();
+      inContext.moveTo(points[i].x, points[i].y);
+    }
+    else {
+      let curP = points[i];
+      let prevP = points[i-1];
+      let endP = {x: (curP.x + prevP.x) * 0.5, 
+                  y: (curP.y + prevP.y) * 0.5};
+      inContext.quadraticCurveTo(prevP.x, prevP.y, endP.x, endP.y);
+    }
+  }
+  if(points.length > 0) {
+    inContext.stroke();
+  }
 }
 
 window.onload = function() {
@@ -33,11 +53,21 @@ window.onload = function() {
   canvas.onmousemove = mouseMove;
   canvas.onmouseup = mouseUp;
 
+  let bgCanvas = document.getElementById("background");
+  bgCanvas.width = canvas.width;
+  bgCanvas.height = canvas.height;
+
   context = canvas.getContext("2d");
   context.lineJoin = "round";
   context.lineCap = "round";
   context.lineWidth = 5.0;
-  //context.shadowBlur = 3;
-  //context.shadowColor = "black";
+  context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+  bgContext = bgCanvas.getContext("2d");
+  bgContext.lineJoin = context.lineJoin;
+  bgContext.lineCap = context.lineCap;
+  bgContext.lineWidth = context.lineWidth;
+  bgContext.fillStyle = "gray";
+  bgContext.fillRect(0, 0, bgContext.canvas.width, bgContext.canvas.height);
 }
 
