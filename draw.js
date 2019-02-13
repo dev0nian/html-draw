@@ -2,6 +2,9 @@ let isDrawing = false;
 let context = null;
 let bgContext = null;
 let points = [];
+let drawState = "pen"; //"pen", "eraser"
+const eraserLineWidth = 30;
+const penLineWidth = 5;
 
 function mouseDown(inEvent) {
   points.length = 0;
@@ -12,13 +15,23 @@ function mouseDown(inEvent) {
 function mouseMove(inEvent) {
   if(isDrawing) {
     points.push({x: inEvent.clientX, y: inEvent.clientY});
-    draw(context, true);
+    if(drawState == "pen") {
+      draw(context, true);
+    }
+    else if(drawState == "eraser") {
+      draw(context, false);
+    }
   }
 }
 
 function mouseUp(inEvent) {
   points.push({x: inEvent.clientX, y: inEvent.clientY});
-  draw(bgContext, false);
+  if(drawState == "pen") {
+    draw(bgContext, false);
+  }
+  else if(drawState == "eraser") {
+    draw(context, false);
+  }
   isDrawing = false;
 }
 
@@ -44,6 +57,33 @@ function draw(inContext, inClear) {
   }
 }
 
+function setDrawState(state) {
+  if(drawState == state) {
+    return;
+  }
+  if(drawState == "eraser" && state == "pen") {
+    bgContext.drawImage(context.canvas, 0, 0, bgContext.canvas.width, bgContext.canvas.height);
+  }
+  drawState = state;
+  if(drawState == "pen") {
+    context.globalCompositeOperation = "source-over";
+    context.lineWidth = penLineWidth;
+    bgContext.lineWidth = penLineWidth;
+  }
+  else if(drawState == "eraser") {
+    //copy over the contents of the bgCanvas into the drawing canvas.
+    //Clear the bgCanvas
+    let bgImageData = bgContext.getImageData(0, 0, bgContext.canvas.width, bgContext.canvas.height);
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    context.putImageData(bgImageData, 0, 0);
+    bgContext.fillRect(0, 0, bgContext.canvas.width, bgContext.canvas.height);
+    context.lineWidth = eraserLineWidth;
+    bgContext.lineWidth = eraserLineWidth;
+
+    context.globalCompositeOperation = "destination-out";
+  }
+}
+
 window.onload = function() {
   console.log("window loaded");
   let canvas = document.getElementById("draw_surface");
@@ -60,13 +100,13 @@ window.onload = function() {
   context = canvas.getContext("2d");
   context.lineJoin = "round";
   context.lineCap = "round";
-  context.lineWidth = 5.0;
+  context.lineWidth = penLineWidth;
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
   bgContext = bgCanvas.getContext("2d");
   bgContext.lineJoin = context.lineJoin;
   bgContext.lineCap = context.lineCap;
-  bgContext.lineWidth = context.lineWidth;
+  bgContext.lineWidth = penLineWidth;
   bgContext.fillStyle = "#EEEEEE";
   bgContext.fillRect(0, 0, bgContext.canvas.width, bgContext.canvas.height);
 }
