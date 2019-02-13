@@ -34,7 +34,7 @@ function draw(inContext, inClear) {
     else {
       let curP = points[i];
       let prevP = points[i-1];
-      let endP = {x: (curP.x + prevP.x) * 0.5, 
+      let endP = {x: (curP.x + prevP.x) * 0.5,
                   y: (curP.y + prevP.y) * 0.5};
       inContext.quadraticCurveTo(prevP.x, prevP.y, endP.x, endP.y);
     }
@@ -67,7 +67,7 @@ window.onload = function() {
   bgContext.lineJoin = context.lineJoin;
   bgContext.lineCap = context.lineCap;
   bgContext.lineWidth = context.lineWidth;
-  bgContext.fillStyle = "gray";
+  bgContext.fillStyle = "#EEEEEE";
   bgContext.fillRect(0, 0, bgContext.canvas.width, bgContext.canvas.height);
 }
 
