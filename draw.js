@@ -2,7 +2,7 @@ let isDrawing = false;
 let context = null;
 let bgContext = null;
 let points = [];
-let drawState = "pen"; //"pen", "eraser"
+let drawState = "pen"; //"pen", "eraser", "highlighter"
 const eraserLineWidth = 30;
 const penLineWidth = 5;
 
@@ -48,7 +48,7 @@ function pointerDown(inX, inY) {
 function pointerMove(inX, inY) {
   if(isDrawing) {
     points.push({x: inX, y: inY});
-    if(drawState == "pen") {
+    if(drawState == "pen" || drawState == "highlighter") {
       draw(context, true);
     }
     else if(drawState == "eraser") {
@@ -59,7 +59,7 @@ function pointerMove(inX, inY) {
 
 function pointerUp(inX, inY) {
   points.push({x: inX, y: inY});
-  if(drawState == "pen") {
+  if(drawState == "pen" || drawState == "highlighter") {
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
     draw(bgContext, false);
   }
@@ -95,7 +95,7 @@ function setDrawState(state) {
   if(drawState == state) {
     return;
   }
-  if(drawState == "eraser" && state == "pen") {
+  if(drawState == "eraser" && (state == "pen" || state == "highlighter")) {
     bgContext.drawImage(context.canvas, 0, 0, bgContext.canvas.width, bgContext.canvas.height);
   }
   drawState = state;
@@ -103,6 +103,8 @@ function setDrawState(state) {
     context.globalCompositeOperation = "source-over";
     context.lineWidth = penLineWidth;
     bgContext.lineWidth = penLineWidth;
+    context.strokeStyle = "black";
+    bgContext.strokeStyle = "black";
   }
   else if(drawState == "eraser") {
     //copy over the contents of the bgCanvas into the drawing canvas.
@@ -112,9 +114,18 @@ function setDrawState(state) {
     context.putImageData(bgImageData, 0, 0);
     bgContext.fillRect(0, 0, bgContext.canvas.width, bgContext.canvas.height);
     context.lineWidth = eraserLineWidth;
+    context.strokeStyle = "black";
+    bgContext.strokeStyle = "black";
     bgContext.lineWidth = eraserLineWidth;
 
     context.globalCompositeOperation = "destination-out";
+  }
+  else if(drawState == "highlighter") {
+    context.globalCompositeOperation = "source-over";
+    context.lineWidth = penLineWidth;
+    context.strokeStyle = "#FF000055";
+    bgContext.strokeStyle = "#FF000055";
+    bgContext.lineWidth = penLineWidth;
   }
 }
 
@@ -138,6 +149,7 @@ window.onload = function() {
   context = canvas.getContext("2d");
   context.lineJoin = "round";
   context.lineCap = "round";
+  context.strokeStyle = "black";
   context.lineWidth = penLineWidth;
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
@@ -145,6 +157,7 @@ window.onload = function() {
   bgContext.lineJoin = context.lineJoin;
   bgContext.lineCap = context.lineCap;
   bgContext.lineWidth = penLineWidth;
+  bgContext.strokeStyle = "black";
   bgContext.fillStyle = "#EEEEEE";
   bgContext.fillRect(0, 0, bgContext.canvas.width, bgContext.canvas.height);
 }
