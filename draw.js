@@ -6,15 +6,48 @@ let drawState = "pen"; //"pen", "eraser"
 const eraserLineWidth = 30;
 const penLineWidth = 5;
 
+function touchDown(inEvent) {
+  let touches = inEvent.changedTouches;
+  if(touches.length > 0) {
+    pointerDown(touches[0].pageX, touches[0].pageY);
+  }
+}
+
+function touchMove(inEvent) {
+  let touches = inEvent.changedTouches;
+  if(touches.length > 0) {
+    pointerMove(touches[0].pageX, touches[0].pageY);
+  }
+}
+
+function touchUp(inEvent) {
+  let touches = inEvent.changedTouches;
+  if(touches.length > 0) {
+    pointerUp(touches[0].pageX, touches[0].pageY);
+  }
+}
+
 function mouseDown(inEvent) {
-  points.length = 0;
-  points.push({x: inEvent.clientX, y: inEvent.clientY});
-  isDrawing = true;
+  pointerDown(inEvent.clientX, inEvent.clientY);
 }
 
 function mouseMove(inEvent) {
+  pointerMove(inEvent.clientX, inEvent.clientY);
+}
+
+function mouseUp(inEvent) {
+  pointerUp(inEvent.clientX, inEvent.clientY);
+}
+
+function pointerDown(inX, inY) {
+  points.length = 0;
+  points.push({x: inX, y: inY});
+  isDrawing = true;
+}
+
+function pointerMove(inX, inY) {
   if(isDrawing) {
-    points.push({x: inEvent.clientX, y: inEvent.clientY});
+    points.push({x: inX, y: inY});
     if(drawState == "pen") {
       draw(context, true);
     }
@@ -24,9 +57,10 @@ function mouseMove(inEvent) {
   }
 }
 
-function mouseUp(inEvent) {
-  points.push({x: inEvent.clientX, y: inEvent.clientY});
+function pointerUp(inX, inY) {
+  points.push({x: inX, y: inY});
   if(drawState == "pen") {
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
     draw(bgContext, false);
   }
   else if(drawState == "eraser") {
@@ -92,6 +126,10 @@ window.onload = function() {
   canvas.onmousedown = mouseDown;
   canvas.onmousemove = mouseMove;
   canvas.onmouseup = mouseUp;
+  canvas.addEventListener("touchstart", touchDown, false);
+  canvas.addEventListener("touchmove", touchMove, false);
+  canvas.addEventListener("touchend", touchUp, false);
+  canvas.addEventListener("touchcancel", touchUp, false);
 
   let bgCanvas = document.getElementById("background");
   bgCanvas.width = canvas.width;
